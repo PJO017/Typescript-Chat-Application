@@ -1,6 +1,6 @@
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { handleConnection, handleMessage } from "./handlers";
+import { handleConnection } from "./handlers";
 
 const initServer = (port: number): WebSocketServer => {
   const server = http.createServer();
