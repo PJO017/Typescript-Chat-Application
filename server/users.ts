@@ -12,7 +12,7 @@ export type User = {
   currentRoom: string;
 };
 
-export const clients = new Map<WebSocket, User>();
+export const users = new Map<WebSocket, User>();
 export const rooms = new Map<string, Room>();
 
 export const createUser = (name: string): User => {
@@ -31,9 +31,13 @@ export const createRoom = (name: string): string => {
 };
 
 export const joinRoom = (connection: WebSocket, roomId: string): void => {
-  if (!rooms.has(roomId)) {
-    throw Error("Room does not exist.");
+  try {
+    if (!rooms.has(roomId)) {
+      throw new Error("Room does not exist.");
+    }
+    rooms.get(roomId)!.connections.add(connection);
+    users.get(connection)!.currentRoom = roomId;
+  } catch (error) {
+    console.log(error);
   }
-  rooms.get(roomId)!.connections.add(connection);
-  clients.get(connection)!.currentRoom = roomId;
 };

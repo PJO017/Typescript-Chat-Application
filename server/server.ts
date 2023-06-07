@@ -1,20 +1,21 @@
-import http from "http";
+import { createServer, Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { handleConnection } from "./handlers";
+import { handleConnection } from "./websockets/handlers";
+import { requestListener } from "./http/routes";
+import { createRoom } from "./users";
 
-const initServer = (port: number): WebSocketServer => {
-  const server = http.createServer();
+const initWSServer = (server: Server): void => {
   const wss = new WebSocketServer({ server });
-
-  server.listen(port, () =>
-    console.log(`Websocket server is running on http://localhost:${port}`)
-  );
-  return wss;
-};
-
-const start = () => {
-  const wss = initServer(8000);
   wss.on("connection", (connection: WebSocket) => handleConnection(connection));
 };
 
-start();
+const initHttpServer = (port: Number): Server => {
+  const server = createServer(requestListener);
+  server.listen(port, () =>
+    console.log(`Server is running on http://localhost:${port}`)
+  );
+  initWSServer(server);
+  return server;
+};
+
+export const server = initHttpServer(8000);

@@ -1,12 +1,5 @@
 import WebSocket from "ws";
-import {
-  joinRoom,
-  rooms,
-  User,
-  createUser,
-  clients,
-  createRoom,
-} from "./clients";
+import { joinRoom, rooms, User, createUser, users, createRoom } from "../users";
 
 const handleMessage = (connection: WebSocket, rawData: any) => {
   try {
@@ -17,8 +10,13 @@ const handleMessage = (connection: WebSocket, rawData: any) => {
         break;
       case "joinRoom":
         handleJoinRoom(connection, jsonData.roomId);
+        break;
       case "createRoom":
         handleCreateRoom(connection, jsonData.name);
+        break;
+      case "leaveRoom":
+        handleLeaveRoom(connection);
+        break;
       default:
         throw Error("Not valid event.");
     }
@@ -33,7 +31,7 @@ const handleBroadcastMessage = (
 ): void => {
   try {
     if (!message) throw Error("No message found.");
-    const user = clients.get(connection)!;
+    const user = users.get(connection)!;
     let roomClients: Set<WebSocket>;
     if (user.currentRoom != "") {
       console.log(
@@ -42,7 +40,7 @@ const handleBroadcastMessage = (
       roomClients = rooms.get(user.currentRoom)!.connections;
     } else {
       console.log(`Broadcasting message: ${message}`);
-      roomClients = new Set(clients.keys());
+      roomClients = new Set(users.keys());
     }
     for (let client of roomClients) {
       if (client != connection) client.send(`${message}`);
@@ -53,7 +51,7 @@ const handleBroadcastMessage = (
 };
 
 const handleJoinRoom = (connection: WebSocket, roomId: string): void => {
-  const user = clients.get(connection)!.userId;
+  const user = users.get(connection)!.userId;
   console.log(`${user} joining room ${roomId}.`);
   try {
     joinRoom(connection, roomId);
@@ -66,9 +64,23 @@ const handleJoinRoom = (connection: WebSocket, roomId: string): void => {
 const handleCreateRoom = (connection: WebSocket, name: string): void => {
   try {
     const roomId = createRoom(name);
+    console.log(`Room: ${roomId} created successfully`);
     connection.send(`Room: ${roomId} created successfully`);
   } catch (error) {
     console.error(`Failed to create room.`);
+    connection.send(`Failed to create room.`);
+  }
+};
+
+const handleLeaveRoom = (connection: WebSocket): void => {
+  try {
+    const user = users.get(connection)!;
+    const roomId = user.currentRoom;
+    rooms.get(user.currentRoom)?.connections.delete(connection);
+    user.currentRoom = "";
+    console.log(`${user.userId} left room: ${roomId}`);
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -81,16 +93,16 @@ export const handleConnection = (connection: WebSocket) => {
   const user: User = createUser("name");
   console.log(`Recieved new connection.`);
 
-  clients.set(connection, user);
+  users.set(connection, user);
   console.log(`${user.userId} connected.`);
 
   eventHandlers(connection);
 };
 
 const handleClose = (connection: WebSocket) => {
-  if (clients.has(connection)) {
-    const userId: string = clients.get(connection)!.userId;
-    clients.delete(connection);
+  if (users.has(connection)) {
+    const userId: string = users.get(connection)!.userId;
+    users.delete(connection);
     console.log(`${userId} disconnected`);
   } else {
     console.error("User not connected.");
