@@ -2,7 +2,6 @@ import { createServer, Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { handleConnection } from "./websockets/handlers";
 import { requestListener } from "./http/routes";
-import { createRoom } from "./users";
 
 const initWSServer = (server: Server): void => {
   const wss = new WebSocketServer({ server });

@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { handleGetRoom, handleCreateRoom } from "./handlers";
+import { handleGetRooms, handleCreateRoom, handleGetUsers } from "./handlers";
 
 export const requestListener = (req: IncomingMessage, res: ServerResponse) => {
   try {
@@ -9,7 +9,10 @@ export const requestListener = (req: IncomingMessage, res: ServerResponse) => {
       case "GET":
         switch (req.url) {
           case "/rooms":
-            handleGetRoom(req, res);
+            handleGetRooms(req, res);
+            break;
+          case "/users":
+            handleGetUsers(req, res);
             break;
         }
         break;
@@ -22,6 +25,6 @@ export const requestListener = (req: IncomingMessage, res: ServerResponse) => {
         break;
     }
   } catch (error: any) {
-    // res.writeHead(400).end(error.message);
+    res.writeHead(400).end(error.message);
   }
 };

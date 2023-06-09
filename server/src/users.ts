@@ -30,13 +30,20 @@ export const createRoom = (name: string): string => {
   return roomId;
 };
 
-export const joinRoom = (connection: WebSocket, roomId: string): void => {
+export const joinRoom = (
+  connection: WebSocket,
+  roomId: string
+): Room | undefined => {
   try {
     if (!rooms.has(roomId)) {
       throw new Error("Room does not exist.");
     }
+    if (!users.get(connection)) {
+      throw new Error("User not connected.");
+    }
     rooms.get(roomId)!.connections.add(connection);
     users.get(connection)!.currentRoom = roomId;
+    return rooms.get(roomId)!;
   } catch (error) {
     console.log(error);
   }

@@ -1,10 +1,14 @@
 import WebSocket from "ws";
 import { joinRoom, rooms, User, createUser, users, createRoom } from "../users";
+import { url } from "inspector";
 
 const handleMessage = (connection: WebSocket, rawData: any) => {
   try {
     const jsonData = JSON.parse(rawData);
     switch (jsonData.event) {
+      case "createUser":
+        handleCreateUser(connection, jsonData.userName);
+        break;
       case "message":
         handleBroadcastMessage(connection, jsonData.message);
         break;
@@ -23,6 +27,17 @@ const handleMessage = (connection: WebSocket, rawData: any) => {
   } catch (error) {
     console.error(error);
   }
+};
+
+const handleCreateUser = (connection: WebSocket, userName: string) => {
+  let user: User;
+  if (users.has(connection)) {
+    user = { ...users.get(connection)!, name: userName };
+  } else {
+    user = createUser(userName);
+  }
+  users.set(connection, user);
+  console.log(`${user.userId} connected.`);
 };
 
 const handleBroadcastMessage = (
@@ -90,12 +105,7 @@ const eventHandlers = (connection: WebSocket) => {
 };
 
 export const handleConnection = (connection: WebSocket) => {
-  const user: User = createUser("name");
-  console.log(`Recieved new connection.`);
-
-  users.set(connection, user);
-  console.log(`${user.userId} connected.`);
-
+  console.log(`Recieved new connection, ${connection}`);
   eventHandlers(connection);
 };
 

@@ -2,10 +2,10 @@
   "name": "ts-chat-rooms",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node ./server/server.ts"
+    "start": "ts-node ./src/server.ts"
   },
   "keywords": [],
   "author": "",
